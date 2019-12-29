@@ -2,14 +2,44 @@ package com.angelale;
 
 import java.io.*;
 import java.sql.*;
+import java.util.Properties;
 
 public class Main {
     public static final String CONNECTION = "jdbc:mysql://localhost:3306/demo?serverTimezone=UTC";
     public static void main(String[] args) {
+
+        //testing creating and reading a config.properties file to stablish a connection to database
+        Properties properties = new Properties();
+        try(OutputStream out = new FileOutputStream("config.properties")){
+
+            properties.setProperty("dbURL","jdbc:mysql://localhost:3306/demo?serverTimezone=UTC");
+            properties.setProperty("user","student");
+            properties.setProperty("pass","studentstudent@12");
+            properties.store(out,null);
+            System.out.println(properties);
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+        try(InputStream in = new FileInputStream("config.properties")){
+            properties.load(in);
+            String url = properties.getProperty("dbURL");
+            String user = properties.getProperty("user");
+            String pass = properties.getProperty("pass");
+            try(Connection connection = DriverManager.getConnection(url,user,pass);
+            Statement st = connection.createStatement()){
+                ResultSet rs = st.executeQuery("select email from employees");
+                while (rs.next()){
+                    System.out.println(rs.getString(1));
+                }
+                rs.close();
+            }catch (SQLException e){
+                e.printStackTrace();
+            }
+        }catch (IOException e){
+            e.printStackTrace();
+        }
         PreparedStatement statement = null;
-
         ResultSet resultSet = null;
-
         FileReader fr = null;
         FileWriter fw = null;
         Reader r = null;
