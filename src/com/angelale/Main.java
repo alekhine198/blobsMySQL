@@ -7,62 +7,50 @@ public class Main {
     public static final String CONNECTION = "jdbc:mysql://localhost:3306/demo?serverTimezone=UTC";
     public static void main(String[] args) {
         PreparedStatement statement = null;
-        Statement st = null;
+
         ResultSet resultSet = null;
 
-        InputStream input = null;
-        FileOutputStream out = null;
+        FileReader fr = null;
+        FileWriter fw = null;
+        Reader r = null;
 
         try (Connection connection = DriverManager.getConnection(CONNECTION, "student", "studentstudent@12")) {
-            //reading file and writing it to the database
-            String sql = "update employees set resume=? where email= 'john.doe@foo.com'";
+            String sql = "update employees set resume = ? where email ='john.doe@foo.com'";
             statement = connection.prepareStatement(sql);
-
-            File pdf = new File("sample_resume.pdf");
-            input = new FileInputStream(pdf);
-
-            statement.setBinaryStream(1,input);
-            System.out.println("saving files "+pdf.getAbsolutePath());
-            System.out.println("storing "+pdf);
+            File file = new File("sample_resume.txt");
+            fr = new FileReader(file);
+            statement.setCharacterStream(1,fr);
+            System.out.println("setting file "+file.getAbsolutePath());
             statement.executeUpdate();
 
-            st = connection.createStatement();
-            resultSet = st.executeQuery("select resume from employees where email = 'john.doe@foo.com'");
+            file = new File("resume2.txt");
+            fw = new FileWriter(file);
+            statement = connection.prepareStatement("select resume from employees where email = ?");
+            statement.setString(1,"john.doe@foo.com");
+            resultSet = statement.executeQuery();
 
-            //reading file from database and writing it to a byte array
-            File file = new File("resume_db.pdf");
-            out = new FileOutputStream(file);
-
-            if(resultSet.next()){
-                input = resultSet.getBinaryStream(1);
-
-                System.out.println("Reading from database...");
-                byte[] buffer = new byte[1024];
-                while (input.read(buffer) > 0){
-                    out.write(buffer);
-                }
-
-                System.out.println("saved to file "+file.getAbsolutePath());
+            if (resultSet.next()){
+                r = resultSet.getCharacterStream(1);
+                System.out.println("reading from database");
+                int c_char;
+                while ((c_char = r.read())>0) fw.write(c_char);
+                System.out.println("saved file"+file.getAbsolutePath());
             }
-
-            System.out.println("Done");
-
+            System.out.println("done");
         } catch (SQLException e) {
             e.printStackTrace();
         }catch (IOException e){
             e.printStackTrace();
         }finally {
             try {
-                if (input != null) {
-                    input.close();
-                }
-                if(out != null){
-                    out.close();
-                }
                 statement.close();
+                if (fr!=null)fr.close();
+                if (fw!=null)fw.close();
+                if (fw!=null)r.close();
             } catch (SQLException e) {
-                e.printStackTrace();
-            }catch(IOException e){
+               e.printStackTrace();
+            }
+            catch(IOException e){
                 e.printStackTrace();
             }
         }
