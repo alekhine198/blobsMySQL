@@ -15,7 +15,7 @@ public class Main {
 
         try (Connection connection = DriverManager.getConnection(CONNECTION, "student", "studentstudent@12")) {
             //reading file and writing it to the database
-            String sql = "update employees set resume=? where email= 'mary.public@foo.com'";
+            String sql = "update employees set resume=? where email= 'john.doe@foo.com'";
             statement = connection.prepareStatement(sql);
 
             File pdf = new File("sample_resume.pdf");
